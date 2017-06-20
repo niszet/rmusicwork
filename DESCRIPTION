@@ -1,11 +1,13 @@
 Package: rmusicwork
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Support libray for making music/sound in R
+Version: 0.0.0.9000
+Author: niszet
+Maintainer: niszet <niszet0016@gmail.com>
+Description: This package especially for wav file which made by csound/rsound 
+    environment. This package is not tested well...
+    This package is always 'Test' package. Will not to be 'final' version.
+License: MIT
+Depends: R (>= 3.4.0)
 Encoding: UTF-8
 LazyData: true
