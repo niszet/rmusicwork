@@ -67,7 +67,7 @@ read_mtrk <- function(con){
   return(list(NA,NA))
 }
 
-read_smf <- function(file="C:/Users/niszet/Documents/Finale Files/aaa.mid"){
+read_smf <- function(file){
   con <- file(file, "rb")
   on.exit(close(con))
   file_size <- file.info(file)[["size"]]
