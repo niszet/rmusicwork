@@ -10,25 +10,25 @@ read_wav <- function(file, start_time=0, end_time=NULL, unit="sec", csound=NULL)
     stop(paste0("This file size is too heavy to open ", file_size))
   }
   wav <- list("fileSize"= file_size)
-  wav <- c(wav, check_riff(connection),
-           check_file_size_riff(connection),
-           check_wave(connection), # 'WAVE'
-           check_fmt(connection), # 'fmt '
-           check_fmt_byte(connection), #
-           get_fmt_id(connection),
-           get_num_channel(connection),
-           get_sample_rate(connection),
-           get_data_verocity(connection),
-           get_block_size(connection),
-           get_bit_per_sample(connection)
+  wav <- c(wav, .check_riff(connection),
+           .check_file_size_riff(connection),
+           .check_wave(connection), # 'WAVE'
+           .check_fmt(connection), # 'fmt '
+           .check_fmt_byte(connection), #
+           .get_fmt_id(connection),
+           .get_num_channel(connection),
+           .get_sample_rate(connection),
+           .get_data_verocity(connection),
+           .get_block_size(connection),
+           .get_bit_per_sample(connection)
   )
 
   if( wav[["formatByte"]]>16) {
-    wesize <- get_extended_size(connection)
+    wesize <- .get_extended_size(connection)
     wav <- c(wav, wesize)
 
     if(wesize[["extSize"]]>0){
-      wehead <- get_header_extended(connection, asize=wesize[["extSize"]])
+      wehead <- .get_header_extended(connection, asize=wesize[["extSize"]])
       wav <- c(wav, wehead)
     }else{
       wav <-  c(wav, list("extHead" = NULL))
@@ -37,8 +37,8 @@ read_wav <- function(file, start_time=0, end_time=NULL, unit="sec", csound=NULL)
   }
 
   wav <- c(wav,
-           check_data(connection),
-           get_data_size(connection)
+           .check_data(connection),
+           .get_data_size(connection)
   )
 
   wch <- wav[["numChannel"]]
@@ -91,7 +91,7 @@ read_wav <- function(file, start_time=0, end_time=NULL, unit="sec", csound=NULL)
     }
   }
 
-  tmpR <- get_data(connection, an=size_rest*wch, asize = wbps/8)
+  tmpR <- .get_data(connection, an=size_rest*wch, asize = wbps/8)
 
   len <-  length(tmpR)
   tmpL <- tmpR[seq(1, len, +2)]
@@ -133,7 +133,7 @@ print.rwav <-  function(wav, debugmode=NULL){
   cat(str(wav$data), "\n")
 }
 
-check_riff <- function(con){
+.check_riff <- function(con){
   f_riff <- readChar(con, 4L, useBytes=TRUE)
   if(f_riff != "RIFF"){
     stop("This is NOT valied wave file. 'RIFF' must be included")
@@ -141,13 +141,13 @@ check_riff <- function(con){
   list("riff" = f_riff)
 }
 
-check_file_size_riff <- function(con){
+.check_file_size_riff <- function(con){
   f_size <- readBin(con, "integer", n=1L, size=4L)
   # print(f_size)
   list("fileSizeByRiff" = f_size)
 }
 
-check_wave <- function(con){
+.check_wave <- function(con){
   ext_str <- readChar(con, 4L, useBytes=TRUE)
   if( ext_str != 'WAVE' ){
     stop("This is NOT valied wave file. 'WAVE' must be included")
@@ -156,7 +156,7 @@ check_wave <- function(con){
   list("wave" = ext_str)
 }
 
-check_fmt <- function(con){
+.check_fmt <- function(con){
   ext_str <- readChar(con, 4L, useBytes=TRUE)
   if(ext_str != "fmt "){
     stop("This is NOT valied wave file. 'fmt ' must be included")
@@ -165,12 +165,12 @@ check_fmt <- function(con){
   list("format" = ext_str)
 }
 
-check_fmt_byte <-  function(con){
+.check_fmt_byte <-  function(con){
   f_size <- readBin(con, "integer", n=1L, size=4L)
   list("formatByte" = f_size)
 }
 
-get_fmt_id <-  function(con){
+.get_fmt_id <-  function(con){
   f_size <- readBin(con, "integer", n=1L, size=2L)
   if(f_size != 1){
     stop(paste0("Format ID: ", f_size , ". This file type is NOT supported. Only PCM (format ID 1) is supported.)"))
@@ -178,7 +178,7 @@ get_fmt_id <-  function(con){
   list("formatId" = f_size)
 }
 
-get_num_channel <-  function(con){
+.get_num_channel <-  function(con){
   f_size <- readBin(con, "integer", n=1L, size=2L)
   if(f_size != 2){
     stop(paste0("Sorry, this version only supports 2 channel wave format. input is : ", f_size))
@@ -187,7 +187,7 @@ get_num_channel <-  function(con){
   list("numChannel" = f_size)
 }
 
-get_sample_rate <-  function(con){
+.get_sample_rate <-  function(con){
   f_size <- readBin(con, "integer", n=1L, size=4L)
   # print(f_size)
   #if(f_size != 44100){
@@ -196,50 +196,50 @@ get_sample_rate <-  function(con){
   list("sampleRate" = f_size)
 }
 
-get_data_verocity <-  function(con){
+.get_data_verocity <-  function(con){
   f_size <- readBin(con, "integer", n=1L, size=4L)
   # print(f_size)
   list("verocity" = f_size)
 }
 
-get_block_size <-  function(con){
+.get_block_size <-  function(con){
   f_size <- readBin(con, "integer", n=1L, size=2L)
   # print(f_size)
   list("blockSample" = f_size)
 }
 
-get_bit_per_sample <-  function(con){
+.get_bit_per_sample <-  function(con){
   f_size <- readBin(con, "integer", n=1L, size=2L)
   list("bitPerSample" = f_size)
   # print(f_size)
 }
 
-get_extended_size <-  function(con, an=1L, asize=2L){
+.get_extended_size <-  function(con, an=1L, asize=2L){
   f_size <- readBin(con, "integer", n=an, size=asize)
   list("extSize" = f_size)
 #  print(f_size)
 }
 
-get_header_extended <-  function(con, an=1L, asize=1L){
+.get_header_extended <-  function(con, an=1L, asize=1L){
   f_size <- readBin(con, "integer", n=an, size=asize)
   list("extHead" = f_size)
 #  f_size <- readBin(con, "integer", 2L, 1L)
 #  print(f_size)
 }
 
-check_data <- function(con){
+.check_data <- function(con){
   ext_str <- readChar(con, 4L, useBytes=TRUE)
   list("dataChar" = ext_str)
 #  print(ext_str)
 }
 
-get_data_size <- function(con, an=1L, asize=4L){
+.get_data_size <- function(con, an=1L, asize=4L){
   f_size <- readBin(con, "integer", n=an, size=asize)
   list("dataSize" = f_size)
 #  print(f_size)
 }
 
-get_data <- function(con, an=1L, asize=2L){
+.get_data <- function(con, an=1L, asize=2L){
   #dd <- readBin(con, "integer" , n=an, size=asize, endian = "little", signed=FALSE)
   # dd <- readBin(con, "integer" , n=1L, size=2L )
   dd <- readBin(con, "integer" , n=an, size=asize )

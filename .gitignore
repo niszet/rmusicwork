@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+R/read_smf.R
+.gitignore
