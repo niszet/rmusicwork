@@ -1,72 +1,8 @@
-
-.read_data_size <- function(con, an=1L, asize=4L, endian="big"){
-  tmp <- readBin(con, "integer", n=an, size=asize, endian = endian)
-  # list("data_size", tmp)
-  c("data_size", tmp)
-}
-
-.read_mthd <- function(con){
-  tmp <- readChar(con, 4L, useBytes=TRUE)
-  # list("MThd", tmp)
-  c("MThd", tmp)
-}
-
-.read_format <- function(con){
-  tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
-  # list("format", tmp)
-  c("format", tmp)
-}
-
-.read_track <- function(con){
-  tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
-  # list("track", tmp)
-  c("track", tmp)
-}
-
-.read_time_unit<- function(con){
-  tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
-  # list("timeunit", tmp)
-  c("timeunit", tmp)
-}
-
-.read_header <- function(con){
-  # MThd
-  # tmp <- readChar(con, 4L, useBytes=TRUE)
-  # print(tmp)
-  smf <- data.frame(stringsAsFactors=FALSE)
-  smf <- rbind(smf, .read_mthd(con), stringsAsFactors=FALSE)
-  colnames(smf) <- c("item", "val")
-  # Data size
-  # tmp <- readBin(con, "integer", n=1L, size=4L,endian = "big")
-  # print(tmp)
-  smf <- rbind(smf, .read_data_size(con), stringsAsFactors=FALSE)
-  # Format
-  # tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
-  # print(tmp)
-  smf <- rbind(smf, .read_format(con), stringsAsFactors=FALSE)
-  # track
-  # tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
-  # print(tmp)
-  smf <- rbind(smf, .read_track(con), stringsAsFactors=FALSE)
-  # time unit
-  # tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
-  # print(tmp)
-  smf <- rbind(smf, .read_time_unit(con), stringsAsFactors=FALSE)
-}
-
-.read_track_data_size <- function(con){
-  tmp <- readBin(con, "integer", n=1L, size=4L,endian = "big")
-  c("data_size", tmp, NA, NA)
-}
-
-.read_mtrk <- function(con){
-  tmp <- readChar(con, 4L, useBytes=TRUE)
-  if(tmp=="MTrk"){
-    return(c("MTrk", NA, NA, NA, NA, 0))
-  }
-  return(list(NA,NA))
-}
-
+#' SMF read funcition
+#'
+#' @name read_smf
+#' @param file input file path
+#' @export
 read_smf <- function(file){
   con <- file(file, "rb")
   on.exit(close(con))
@@ -136,16 +72,80 @@ read_smf <- function(file){
 
   class(smf) <- "rsmf"
 
-
-
-
-
   smf
 
   # print("EOF")
 }
 
-.read_ctrl <- function(con, rsmf){
+.read_data_size <- function(con, an=1L, asize=4L, endian="big"){
+  tmp <- readBin(con, "integer", n=an, size=asize, endian = endian)
+  # list("data_size", tmp)
+  c("data_size", tmp)
+}
+
+.read_mthd <- function(con){
+  tmp <- readChar(con, 4L, useBytes=TRUE)
+  # list("MThd", tmp)
+  c("MThd", tmp)
+}
+
+.read_format <- function(con){
+  tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
+  # list("format", tmp)
+  c("format", tmp)
+}
+
+.read_track <- function(con){
+  tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
+  # list("track", tmp)
+  c("track", tmp)
+}
+
+.read_time_unit<- function(con){
+  tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
+  # list("timeunit", tmp)
+  c("timeunit", tmp)
+}
+
+.read_header <- function(con){
+  # MThd
+  # tmp <- readChar(con, 4L, useBytes=TRUE)
+  # print(tmp)
+  smf <- data.frame(stringsAsFactors=FALSE)
+  smf <- rbind(smf, .read_mthd(con), stringsAsFactors=FALSE)
+  colnames(smf) <- c("item", "val")
+  # Data size
+  # tmp <- readBin(con, "integer", n=1L, size=4L,endian = "big")
+  # print(tmp)
+  smf <- rbind(smf, .read_data_size(con), stringsAsFactors=FALSE)
+  # Format
+  # tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
+  # print(tmp)
+  smf <- rbind(smf, .read_format(con), stringsAsFactors=FALSE)
+  # track
+  # tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
+  # print(tmp)
+  smf <- rbind(smf, .read_track(con), stringsAsFactors=FALSE)
+  # time unit
+  # tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
+  # print(tmp)
+  smf <- rbind(smf, .read_time_unit(con), stringsAsFactors=FALSE)
+}
+
+.read_track_data_size <- function(con){
+  tmp <- readBin(con, "integer", n=1L, size=4L,endian = "big")
+  c("data_size", tmp, NA, NA)
+}
+
+.read_mtrk <- function(con){
+  tmp <- readChar(con, 4L, useBytes=TRUE)
+  if(tmp=="MTrk"){
+    return(c("MTrk", NA, NA, NA, NA, 0))
+  }
+  return(list(NA,NA))
+}
+
+.read_ctrl <- function(con){
   tmp <- readBinInt(con)
 
   tmpu <- bitops::bitShiftR(tmp, 4) #extract upper 4bits
@@ -251,9 +251,9 @@ read_smf <- function(file){
           # nn dd cc bb
           beat <- as.list(me_data)
           names(beat) <- c("numerator", "denominator", "metro", "num32")
-          rsmf$beat <- beat
-          return(rsmf)
-          # return(list("FF", meta_event, d_len, mbyte_to_int_big(me_data), "haku"))
+          # rsmf$beat <- beat
+          # return(rsmf)
+          return(list("FF", meta_event, d_len, mbyte_to_int_big(me_data), "haku"))
         }
         # coard
         if(meta_event==89){
