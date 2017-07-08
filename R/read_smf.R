@@ -3,6 +3,7 @@
 #' @name read_smf
 #' @param file input file path
 #' @export
+#'
 read_smf <- function(file){
   con <- file(file, "rb")
   on.exit(close(con))
@@ -65,8 +66,6 @@ read_smf <- function(file){
   # colnames(smf_data) <- c("item", "ch", "type", "val", "com")
   #smf <- list("header"=smf_header, "data"=smf_data)
 
-
-
   smf <- c( list("header" = smf_header),
             list("tracks" = smf_data))
 
@@ -77,36 +76,47 @@ read_smf <- function(file){
   # print("EOF")
 }
 
+#' This is internal function
+#'
 .read_data_size <- function(con, an=1L, asize=4L, endian="big"){
   tmp <- readBin(con, "integer", n=an, size=asize, endian = endian)
   # list("data_size", tmp)
   c("data_size", tmp)
 }
 
+#' This is internal function
+#'
 .read_mthd <- function(con){
   tmp <- readChar(con, 4L, useBytes=TRUE)
   # list("MThd", tmp)
   c("MThd", tmp)
 }
 
+#' This is internal function
+#'
 .read_format <- function(con){
   tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
   # list("format", tmp)
   c("format", tmp)
 }
 
+#' This is internal function
+#'
 .read_track <- function(con){
   tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
   # list("track", tmp)
   c("track", tmp)
 }
 
+#' This is internal function
+#'
 .read_time_unit<- function(con){
   tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
   # list("timeunit", tmp)
   c("timeunit", tmp)
 }
 
+#' This is internal function
 .read_header <- function(con){
   # MThd
   # tmp <- readChar(con, 4L, useBytes=TRUE)
@@ -132,11 +142,13 @@ read_smf <- function(file){
   smf <- rbind(smf, .read_time_unit(con), stringsAsFactors=FALSE)
 }
 
+#' This is internal function
 .read_track_data_size <- function(con){
   tmp <- readBin(con, "integer", n=1L, size=4L,endian = "big")
   c("data_size", tmp, NA, NA)
 }
 
+#' This is internal function
 .read_mtrk <- function(con){
   tmp <- readChar(con, 4L, useBytes=TRUE)
   if(tmp=="MTrk"){
@@ -145,6 +157,7 @@ read_smf <- function(file){
   return(list(NA,NA))
 }
 
+#' This is internal function
 .read_ctrl <- function(con){
   tmp <- readBinInt(con)
 
@@ -290,6 +303,7 @@ mbyte_to_int_lit <- function(vec){
   sum(256**seq(length(vec)-1, 0, by=-1) * vec)
 }
 
+#' This is internal function
 .read_dtime <- function(con){
   stmp <- 0
   tmp <- readBinInt(con)
