@@ -1,5 +1,12 @@
-
-
+#' SMF read funcition
+#'
+#' @name read_wav
+#' @param file input file path
+#' @param start_times start time by sec
+#' @param end_times end time by sec
+#' @param unit unit for the start and end times. now only "sec" is allowed.
+#' @export
+#'
 read_wav <- function(file, start_time=0, end_time=NULL, unit="sec", csound=NULL){
 
   connection <- file(file, "rb")
