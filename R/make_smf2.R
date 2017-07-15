@@ -14,7 +14,7 @@ make_note_frame <- function(smf){
 
   tmp <-  tmp %>% filter(item %in% c(8,9))
 
-  notes <-  as.data.frame(list("ch"=NULL,"type"=NULL, "val"=NULL, "start_time"=NULL, "end_time"=NULL))
+  notes <-  as.data.frame(list("ch"=NA,"height"=NA, "val"=NA_character_, "start_time"=NA, "end_time"=NA), stringsAsFactors = FALSE)
   k <- 0
   for (i in 1:nrow(tmp)){
     k <- k+1
@@ -22,12 +22,12 @@ make_note_frame <- function(smf){
     if( rr$item == 9){
       if( rr$val != 0){
         # note on
-        note <- list("ch"=rr$ch,"type"=rr$type, "val"=rr$val, "start_time"=rr$abs_time, "end_time"=NULL)
+        note <- list("ch"=rr$ch,"height"=rr$type, "val"=as.character(rr$val), "start_time"=rr$abs_time, "end_time"=NULL)
         # find note off time
         m <- k
         for( j in k:nrow(tmp)){
           tmpx <-  tmp[m,]
-          if( (tmpx$item == 8 || (tmpx$item==9 && tmpx$val==0)) && tmpx$type==note$type){
+          if( (tmpx$item == 8 || (tmpx$item==9 && tmpx$val==0)) && tmpx$type ==note$height){
             # note off found
             note$end_time <- tmpx$abs_time
             break
@@ -38,6 +38,8 @@ make_note_frame <- function(smf){
       }
     }
   }
+  notes <- na.omit(notes)
+  notes$val <-  as.integer(notes$val)
   return(notes)
 }
 
