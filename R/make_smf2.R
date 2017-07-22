@@ -1,3 +1,9 @@
+#' rsmf to note_frame
+#'
+#' @name read_smf
+#' @param smf rsmf object
+#' @export
+#'
 
 make_note_frame <- function(smf){
   #smf$tracks
@@ -42,6 +48,3 @@ make_note_frame <- function(smf){
   notes$val <-  as.integer(notes$val)
   return(notes)
 }
-
-
-

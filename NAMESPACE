@@ -2,3 +2,4 @@
 
 export(read_smf)
 export(read_wav)
+export(write_smf)

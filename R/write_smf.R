@@ -11,22 +11,35 @@ write_smf <- function(file, rsmf){
 
   #rsmf_head <- get_header(rsmf)
   #wr_state <- write_header(con,rsmf_head)
-  ntracks <- length(xxx2$tracks)
-  write_header(con, ntracks, 1024)
+  # ntracks <- length(rsmf$tracks)
+  ntracks <- as.integer(subset(rsmf$header,item=="track")$val)
+
+  write_header(con, as.integer(subset(rsmf$header,item=="track")$val),
+              as.integer(subset(rsmf$header,item=="timeunit")$val))
 
   # rsmf_tracks <- get_tracks(rsmf)
 
-  if( ntracks > 1){
-    smf_format <- 1
-  }else{
-    smf_format <- 0
-  }
+  # if( ntracks > 1){
+  #  smf_format <- 1
+  #}else{
+  #  smf_format <- 0
+  #}
+  smf_format <- as.integer(subset(rsmf$header,item=="format")$val)
+
+  nf <- make_nf2(make_note_frame(rsmf)) # %>% filter(ch==i-1)
+
+  # writing tracks
   for (i in 1:ntracks){
-    nf <- make_nf2(make_note_frame(rsmf)) %>% filter(ch==i-1)
-    write_track(con, nf)
+    nf2 <- nf %>% filter(ch==i-1)
+    write_track(con, nf2, i-1)
   }
 }
 
+#' @name write_header
+#' @param con connection object
+#' @param ntracks number of tracks
+#' @param tunit timeunits
+#'
 write_header <- function(con, ntracks, tunit){
   writeChar("MThd", con, eos=NULL)
   writeBin(as.raw(c(0,0,0,6)), con, endian = "big")
@@ -35,21 +48,53 @@ write_header <- function(con, ntracks, tunit){
   writeBin(int_to_raws(tunit), con, endian = "big")
 }
 
-write_track <- function(con, data){
+write_track <- function(con, data, ch){
   writeChar("MTrk", con, eos=NULL)
+
   dn <- 0
+
   if (nrow(data)!=0){
-  dn <- data %>% select(dtime) %>% mutate(dn=floor(dtime/128)) %>% select(dn) %>% sum()
+    dn <- data %>% mutate(dn=floor(log(dtime,128))+1) %>%
+      select(dn) %>% sum()
   }
-  tsize <- int_to_raws(nrow(data)*3+dn+3)
+
+  if(ch!=0){
+    tsize <- int_to_raws(nrow(data)*3+dn+3+2)
+  }else{
+    tsize <- int_to_raws(22+3+4+2)
+  }
+
   for (i in 1:(4-length(tsize))){
     tsize <- c(as.raw(0), tsize)
   }
+
   writeBin(tsize, con, endian="big")
+
+  if(ch==0){
+    # tempo
+    writeBin(as.raw(c(0)), con, endian = "big")
+    writeBin(as.raw(c(255,81,3,int_to_raws(500000))), con, endian = "big")
+    # smpte offset
+    writeBin(as.raw(c(0)), con, endian = "big")
+    writeBin(as.raw(c(255,84,5,0)), con, endian = "big")
+    # beat
+    writeBin(as.raw(c(0)), con, endian = "big")
+    writeBin(as.raw(c(255,84,5,4,4,24,8)), con, endian = "big")
+    # coard
+    writeBin(as.raw(c(0)), con, endian = "big")
+    writeBin(as.raw(c(255,84,5,0,0)), con, endian = "big")
+  }
+
   if(nrow(data)!=0){
     write_notes(con, data)
   }
-  writeBin(as.raw(c(255,47,00)),con, endian="big" )
+  if (ch==0){
+    write_dtime(con, 737)
+  }else{
+    write_dtime(con, 737-515)
+  }
+  writeBin(as.raw(c(255,47,00)),con, endian="big")
+
 }
 
 write_notes <- function(con, data){
@@ -68,23 +113,33 @@ write_dtime <- function(con, val){
   v <- c()
   if( keta > 1){
     for (i in keta:1){
-      v[[i]] <- as.raw(floor(val/(128**(i-1))))
-      val <- val-floor(val/128**(i-1))*(128**(i-1))
+      if( i!=1 ){
+        # add 1***_**** (add 128 as integer)
+        v[[keta-i+1]] <- as.raw(floor(val/(128**(i-1)))+128)
+        val <- val-floor(val/128**(i-1))*(128**(i-1))
+      }else{
+        v[[keta-i+1]] <- as.raw(floor(val/(128**(i-1))))
+        val <- val-floor(val/128**(i-1))*(128**(i-1))
+      }
     }
   }else{
     v <- as.raw(val)
   }
-  writeBin(v, con, endian = "big")
+  writeBin(v, con, endian = "little")
 }
 
 make_nf2 <- function(nf){
-  nf2 <- nf %>% select(-end_time) %>% mutate(item=9) %>% rename(time=start_time)
-  nf3 <- nf %>% select(-start_time, -val) %>% mutate(item=8, val=0) %>% rename(time=end_time)
+  # itme = 9 note on
+  nf2 <- nf %>% select(-end_time) %>% mutate(item=144) %>% rename(time=start_time)
+  # itme = 8 note off
+  nf3 <- nf %>% select(-start_time, -val) %>% mutate(item=128, val=0) %>%
+    rename(time=end_time)
   ch <- nf3 %>% select(ch) %>% distinct()
   nf4 <- data.frame()
   for (i in ch$ch){
     nf4 <- rbind(nf4, rbind(nf2, nf3) %>% filter(ch==i) %>% arrange(ch, time) %>%
-      mutate(dtime=ifelse(is.na(time-lag(time)), time, time-lag(time))) %>% mutate(ch=ch+1)
+      mutate(dtime=ifelse(is.na(time-lag(time)), time, time-lag(time))) %>%
+        mutate(ch=ch+1)
     )
   }
   nf4
