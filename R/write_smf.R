@@ -9,98 +9,156 @@ write_smf <- function(file, rsmf){
   con <- file(file, "wb")
   on.exit(close(con))
 
-  #rsmf_head <- get_header(rsmf)
-  #wr_state <- write_header(con,rsmf_head)
-  # ntracks <- length(rsmf$tracks)
-  ntracks <- as.integer(subset(rsmf$header,item=="track")$val)
+  write_header(con, rsmf)
 
-  write_header(con, as.integer(subset(rsmf$header,item=="track")$val),
-              as.integer(subset(rsmf$header,item=="timeunit")$val))
+  # nf <- make_nf2(make_note_frame(rsmf)) # %>% filter(ch==i-1)
 
-  # rsmf_tracks <- get_tracks(rsmf)
-
-  # if( ntracks > 1){
-  #  smf_format <- 1
-  #}else{
-  #  smf_format <- 0
-  #}
-  smf_format <- as.integer(subset(rsmf$header,item=="format")$val)
-
-  nf <- make_nf2(make_note_frame(rsmf)) # %>% filter(ch==i-1)
-
-  # writing tracks
-  for (i in 1:ntracks){
-    nf2 <- nf %>% filter(ch==i-1)
-    write_track(con, nf2, i-1)
-  }
+  write_tracks(con, rsmf)
 }
 
 #' @name write_header
 #' @param con connection object
-#' @param ntracks number of tracks
-#' @param tunit timeunits
-#'
-write_header <- function(con, ntracks, tunit){
+#' @param rsmf rmsf object
+write_header <- function(con, rsmf){
   writeChar("MThd", con, eos=NULL)
-  writeBin(as.raw(c(0,0,0,6)), con, endian = "big")
-  writeBin(as.raw(c(0,1)), con, endian = "big")
-  writeBin(as.raw(c(0,ntracks)), con, endian = "big")
-  writeBin(int_to_raws(tunit), con, endian = "big")
+#   dsize <- as.integer(subset(rsmf$header,item=="data_size")$val)
+  dsize <- headval_to_int(rsmf, "data_size")
+  stopifnot(dsize < 256)
+  tunit <- headval_to_int(rsmf, "timeunit")
+  ntracks <- headval_to_int(rsmf, "track")
+  fo <- headval_to_int(rsmf, "format")
+
+  # writeBin(as.raw(c(0,0,0), as.raw(dsize)), con, endian = "big")
+  # writeBin(as.raw(c(0,fo)), con, endian = "big")
+  # writeBin(as.raw(c(0,ntracks)), con, endian = "big")
+  writeBin(int_to_raws(dsize, length=4), con, endian = "big")
+  writeBin(int_to_raws(fo, length=2), con, endian = "big")
+  writeBin(int_to_raws(ntracks, length=2), con, endian = "big")
+  writeBin(int_to_raws(tunit, length=2), con, endian = "big")
 }
 
-write_track <- function(con, data, ch){
+aaa <- function(data, size=NULL){
+  stopifnot(is.integer(data))
+
+  as.raw(data)
+  c(rep(0,size-dsize), 1)
+}
+
+#' @name headval_to_int
+#' @param rsmf rmsf object
+#' @param rowname rowname as string
+headval_to_int <- function(rsmf, rowname){
+  as.integer(subset(rsmf$header,item==rowname)$val)
+}
+
+write_tracks <- function(con, rsmf){
+  for (i in 1:length(rsmf$tracks)){
+    write_track(con, rsmf$tracks[[i]]$data, rsmf$tracks[[i]]$size)
+  }
+}
+
+write_track <- function(con, data, dsize){
   writeChar("MTrk", con, eos=NULL)
+  # dn <- 0
+  # writeBin(as.raw(c(0,0,0), as.raw(dsize)), con, endian="big")
+  writeBin(int_to_raws(dsize, length=4), con, endian="big")
 
-  dn <- 0
-
-  if (nrow(data)!=0){
-    dn <- data %>% mutate(dn=floor(log(dtime,128))+1) %>%
-      select(dn) %>% sum()
-  }
-
-  if(ch!=0){
-    tsize <- int_to_raws(nrow(data)*3+dn+3+2)
-  }else{
-    tsize <- int_to_raws(22+3+4+2)
-  }
-
-  for (i in 1:(4-length(tsize))){
-    tsize <- c(as.raw(0), tsize)
-  }
-
-  writeBin(tsize, con, endian="big")
-
-  if(ch==0){
-    # tempo
-    writeBin(as.raw(c(0)), con, endian = "big")
-    writeBin(as.raw(c(255,81,3,int_to_raws(500000))), con, endian = "big")
-    # smpte offset
-    writeBin(as.raw(c(0)), con, endian = "big")
-    writeBin(as.raw(c(255,84,5,0)), con, endian = "big")
-    # beat
-    writeBin(as.raw(c(0)), con, endian = "big")
-    writeBin(as.raw(c(255,84,5,4,4,24,8)), con, endian = "big")
-    # coard
-    writeBin(as.raw(c(0)), con, endian = "big")
-    writeBin(as.raw(c(255,84,5,0,0)), con, endian = "big")
-  }
+#  if (nrow(data)!=0){
+#    dn <- data %>% mutate(dn=floor(log(dtime,128))+1) %>%
+#      select(dn) %>% sum()
+#  }
+#
+#  if(ch!=0){
+#    tsize <- int_to_raws(nrow(data)*3+dn+3+2)
+#  }else{
+#    tsize <- int_to_raws(22+3+4+2)
+#  }
+#
+#  for (i in 1:(4-length(tsize))){
+#    tsize <- c(as.raw(0), tsize)
+#  }
+#
+#  writeBin(tsize, con, endian="big")
+#
+#  if(ch==0){
+#    # tempo
+#    writeBin(as.raw(c(0)), con, endian = "big")
+#    writeBin(as.raw(c(255,81,3,int_to_raws(500000))), con, endian = "big")
+#    # smpte offset
+#    writeBin(as.raw(c(0)), con, endian = "big")
+#    writeBin(as.raw(c(255,84,5,0)), con, endian = "big")
+#    # beat
+#    writeBin(as.raw(c(0)), con, endian = "big")
+#    writeBin(as.raw(c(255,84,5,4,4,24,8)), con, endian = "big")
+#    # coard
+#    writeBin(as.raw(c(0)), con, endian = "big")
+#    writeBin(as.raw(c(255,84,5,0,0)), con, endian = "big")
+#  }
+#
 
   if(nrow(data)!=0){
     write_notes(con, data)
   }
-  if (ch==0){
-    write_dtime(con, 737)
-  }else{
-    write_dtime(con, 737-515)
-  }
-  writeBin(as.raw(c(255,47,00)),con, endian="big")
+
+#  if (ch==0){
+#    write_dtime(con, 737)
+#  }else{
+#    write_dtime(con, 737-515)
+#  }
+#  writeBin(as.raw(c(255,47,00)),con, endian="big")
 
 }
 
 write_notes <- function(con, data){
+  data <- data %>% mutate(dtime=ifelse(is.na(abs_time-lag(abs_time)),
+                                       abs_time, abs_time-lag(abs_time)))
   for (i in 1:nrow(data)){
-    write_note(con, data[i,5], data[i,1], data[i,2], data[i,3], data[i,4], data[i,6])
+    write_note(con, data[i,1], data[i,2], data[i,3], data[i,4], data[i,7])
   }
+}
+
+
+write_note <- function(con, item, ch, height, val, dtime){
+  if(!is.na(dtime)){
+    write_dtime(con, dtime)
+  }
+
+#   if(item=="FF"){
+#    print("FF")
+#  }
+  if(is.na(val)){
+    val <- NA_integer_
+  }
+
+  if(!is.na(as.integer(val))){
+    val <- as.integer(val)
+  }
+
+    len <- NULL
+    if(item==255){
+      #if(ch==84){
+      ##  len <- 5
+      #}else if(ch==88){
+      #  len <- 4
+      #}
+      if(is.character(val)){
+      # print(paste("st", item, ch, height, val))
+        lin <- c(int_to_raws(item), int_to_raws(ch), int_to_raws(height), as.raw(utf8ToInt(val)))
+      }else{
+      # print(paste(item, ch, height, val))
+        lin <- c(int_to_raws(item), int_to_raws(ch), int_to_raws(height), int_to_raws(val, length = height))
+        # print(int_to_raws(val, length = height))
+      }
+    }else{
+      # print(item)
+      # print(height)
+      # print(val)
+      lin <- c(int_to_raws(item), int_to_raws(height), int_to_raws(val, length = len))
+      # print(lin)
+    }
+
+
+  writeBin(lin, con, endian = "big")
 }
 
 
@@ -128,49 +186,39 @@ write_dtime <- function(con, val){
   writeBin(v, con, endian = "little")
 }
 
-make_nf2 <- function(nf){
-  # itme = 9 note on
-  nf2 <- nf %>% select(-end_time) %>% mutate(item=144) %>% rename(time=start_time)
-  # itme = 8 note off
-  nf3 <- nf %>% select(-start_time, -val) %>% mutate(item=128, val=0) %>%
-    rename(time=end_time)
-  ch <- nf3 %>% select(ch) %>% distinct()
-  nf4 <- data.frame()
-  for (i in ch$ch){
-    nf4 <- rbind(nf4, rbind(nf2, nf3) %>% filter(ch==i) %>% arrange(ch, time) %>%
-      mutate(dtime=ifelse(is.na(time-lag(time)), time, time-lag(time))) %>%
-        mutate(ch=ch+1)
-    )
-  }
-  nf4
-}
-
-write_note <- function(con, item, ch, height, vol, time, dtime){
-  if(!is.na(dtime)){
-    write_dtime(con, dtime)
-  }
-  lin <- c(as.raw(item), int_to_raws(height), int_to_raws(vol))
-  writeBin(lin, con, endian = "big")
-}
-
-int_to_raws <- function(val, endian="big"){
+#' @name int_to_raws
+#' @param val valur to convert to raw as integer
+#' @param endian big or small by character
+#' @param length max length of raw vector
+int_to_raws <- function(val, endian="big", length=NULL){
   if (is.na(val)){
-    return()
+    return(NULL)
   }
-  val_a <-  val
+  if(val==0){
+    if(!is.null(length)){
+      return(as.raw(rep(0, length)))
+    }
+      return(as.raw(0))
+  }
   keta <- floor(log(val, 256))+1
   v <- c()
-  if( keta > 1){
+#  if( keta > 1){
     for (i in keta:1){
       v[[i]] <- as.raw(floor(val/(256**(i-1))))
       val <- val-floor(val/256**(i-1))*(256**(i-1))
     }
-  }else{
-    v <- as.raw(val)
+#  }else{
+#    v <- as.raw(val)
+#  }
+  if(!is.null(length)){
+    stopifnot(length >= keta)
+    v <- c(v, as.raw(rep(0, length-keta)))
   }
+
   if (endian=="big"){
     rev(v)
   }else{
     v
   }
 }
+

@@ -11,28 +11,29 @@ make_note_frame <- function(smf){
   #find item == 8 with type calculate length of time
   stopifnot(class(smf)=="rsmf")
 
-  tmp <-  data.frame(stringsAsFactors = FALSE)
+  df <-  data.frame(stringsAsFactors = FALSE)
   k <- 0
   for (i in 1:length(smf$tracks)){
     k <- k+1
-    tmp <- rbind(tmp, smf$tracks[[k]])
+    df <- rbind(df, smf$tracks[[k]]$data)
   }
 
-  tmp <-  tmp %>% filter(item %in% c(8,9))
+  df <- df %>% filter(item %in% c(8,9))
 
   notes <-  as.data.frame(list("ch"=NA,"height"=NA, "val"=NA_character_, "start_time"=NA, "end_time"=NA), stringsAsFactors = FALSE)
   k <- 0
-  for (i in 1:nrow(tmp)){
+  for (i in 1:nrow(df)){
     k <- k+1
-    rr <- tmp[k,]
+    rr <- df[k,]
     if( rr$item == 9){
       if( rr$val != 0){
         # note on
-        note <- list("ch"=rr$ch,"height"=rr$type, "val"=as.character(rr$val), "start_time"=rr$abs_time, "end_time"=NULL)
+        note <- list("ch"=rr$ch,"height"=rr$type, "val"=as.character(rr$val),
+                     "start_time"=rr$abs_time, "end_time"=NULL)
         # find note off time
         m <- k
-        for( j in k:nrow(tmp)){
-          tmpx <-  tmp[m,]
+        for( j in k:nrow(df)){
+          tmpx <- df[m,]
           if( (tmpx$item == 8 || (tmpx$item==9 && tmpx$val==0)) && tmpx$type ==note$height){
             # note off found
             note$end_time <- tmpx$abs_time
@@ -47,4 +48,23 @@ make_note_frame <- function(smf){
   notes <- na.omit(notes)
   notes$val <-  as.integer(notes$val)
   return(notes)
+}
+
+
+
+make_nf2 <- function(nf){
+  # itme = 9 note on
+  nf2 <- nf %>% select(-end_time) %>% mutate(item=144) %>% rename(time=start_time)
+  # itme = 8 note off
+  nf3 <- nf %>% select(-start_time, -val) %>% mutate(item=128, val=0) %>%
+    rename(time=end_time)
+  ch <- nf3 %>% select(ch) %>% distinct()
+  nf4 <- data.frame()
+  for (i in ch$ch){
+    nf4 <- rbind(nf4, rbind(nf2, nf3) %>% filter(ch==i) %>% arrange(ch, time) %>%
+      mutate(dtime=ifelse(is.na(time-lag(time)), time, time-lag(time))) %>%
+        mutate(ch=ch+1)
+    )
+  }
+  nf4
 }
