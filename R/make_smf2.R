@@ -18,13 +18,16 @@ make_note_frame <- function(smf){
     df <- rbind(df, smf$tracks[[k]]$data)
   }
 
-  df <- df %>% filter(item %in% c(8,9))
+  df <- df %>% filter(between(item, 128, 159))
 
-  notes <-  as.data.frame(list("ch"=NA,"height"=NA, "val"=NA_character_, "start_time"=NA, "end_time"=NA), stringsAsFactors = FALSE)
+  notes <-  as.data.frame(list("ch"=NA,"height"=NA, "val"=NA_character_,
+                               "start_time"=NA, "end_time"=NA), stringsAsFactors = FALSE)
   k <- 0
   for (i in 1:nrow(df)){
     k <- k+1
     rr <- df[k,]
+    rr$ch <- rr$item %% 16 # extract ch
+    rr$item <- (rr$item - rr$ch)/16 # convert item to deciaml
     if( rr$item == 9){
       if( rr$val != 0){
         # note on
@@ -34,6 +37,9 @@ make_note_frame <- function(smf){
         m <- k
         for( j in k:nrow(df)){
           tmpx <- df[m,]
+          tmpx$ch <- tmpx$ch %% 16
+          tmpx$item <- (tmpx$item - tmpx$ch)/16
+
           if( (tmpx$item == 8 || (tmpx$item==9 && tmpx$val==0)) && tmpx$type ==note$height){
             # note off found
             note$end_time <- tmpx$abs_time

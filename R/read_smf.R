@@ -9,12 +9,12 @@ read_smf <- function(file){
   on.exit(close(con))
   file_size <- file.info(file)[["size"]]
 
-  smf_header <- data.frame(stringsAsFactors=FALSE)
-  smf_header <- rbind(smf_header, c("fileSize", file_size), stringsAsFactors =FALSE)
-  colnames(smf_header) <- c("item", "val")
+  # smf_header <- data.frame(stringsAsFactors=FALSE)
+  # smf_header <- rbind(smf_header, c("fileSize", file_size), stringsAsFactors =FALSE)
+  # colnames(smf_header) <- c("item", "val")
 
-  smf_header <- rbind(smf_header, read_header(con), stringsAsFactors=FALSE)
-
+  # smf_header <- rbind(smf_header, read_header(con), stringsAsFactors=FALSE)
+  smf_header <- read_header(con)
   # TODO the number of track is written in header. to clarify this point of view, it should be separate the each tracks.
   # smf_data <- data.frame(stringsAsFactors=FALSE)
   smf_data <- list()
@@ -77,42 +77,51 @@ read_smf <- function(file){
 
 #' This is internal function
 #'
-.read_data_size <- function(con, an=1L, asize=4L, endian="big"){
+read_data_size <- function(con, an=1L, asize=4L, endian="big"){
   tmp <- readBin(con, "integer", n=an, size=asize, endian = endian)
   # list("data_size", tmp)
-  c("data_size", tmp)
+  # c("data_size", tmp)
+  tmp
 }
 
 #' This is internal function
 #'
-.read_mthd <- function(con){
+read_mthd <- function(con){
+  # tmp <- readChar(con, 4L, useBytes=TRUE)
   tmp <- readChar(con, 4L, useBytes=TRUE)
   # list("MThd", tmp)
-  c("MThd", tmp)
+  #c("MThd", tmp)
+  tmp
 }
 
 #' This is internal function
 #'
-.read_format <- function(con){
+read_format <- function(con){
+  #tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
   tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
   # list("format", tmp)
-  c("format", tmp)
+  # c("format", tmp)
+  tmp
 }
 
 #' This is internal function
 #'
-.read_track <- function(con){
+read_track <- function(con){
+  # tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
   tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
   # list("track", tmp)
-  c("track", tmp)
+  # c("track", tmp)
+  tmp
 }
 
 #' This is internal function
 #'
-.read_time_unit<- function(con){
+read_time_unit<- function(con){
+  # tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
   tmp <- readBin(con, "integer", n=1L, size=2L,endian = "big")
   # list("timeunit", tmp)
-  c("timeunit", tmp)
+  # c("timeunit", tmp)
+  tmp
 }
 
 #' This is internal function
@@ -120,21 +129,29 @@ read_header <- function(con){
   # MThd
   # tmp <- readChar(con, 4L, useBytes=TRUE)
   # print(tmp)
-  smf <- data.frame(stringsAsFactors=FALSE)
-  smf <- rbind(smf, .read_mthd(con), stringsAsFactors=FALSE)
-  colnames(smf) <- c("item", "val")
+  head <- list()
+  # smf <- data.frame(stringsAsFactors=FALSE)
+  # smf <- rbind(smf, .read_mthd(con), stringsAsFactors=FALSE)
+  head$mthd <- read_mthd(con)
+  # colnames(smf) <- c("item", "val")
   # Data size
-  smf <- rbind(smf, .read_data_size(con), stringsAsFactors=FALSE)
+  # smf <- rbind(smf, .read_data_size(con), stringsAsFactors=FALSE)
+  head$data_size <- read_data_size(con)
+
   # smf$data_size <- .read_data_size(con)
   # Format
-  smf <- rbind(smf, .read_format(con), stringsAsFactors=FALSE)
+  # smf <- rbind(smf, .read_format(con), stringsAsFactors=FALSE)
+  head$format <- read_format(con)
   # smf$format <- .read_format(con)
   # track
-  smf <- rbind(smf, .read_track(con), stringsAsFactors=FALSE)
+  # smf <- rbind(smf, .read_track(con), stringsAsFactors=FALSE)
+  head$track <- read_track(con)
   # smf$track <- .read_track(con)
   # time unit
-  smf <- rbind(smf, .read_time_unit(con), stringsAsFactors=FALSE)
+  # smf <- rbind(smf, .read_time_unit(con), stringsAsFactors=FALSE)
+  head$time_unit <- read_time_unit(con)
   # smf$time_unit <- .read_time_unit(con)
+  head
 }
 
 #' This is internal function

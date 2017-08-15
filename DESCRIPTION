@@ -1,7 +1,7 @@
 Package: rmusicwork
 Type: Package
 Title: Support libray for making music/sound in R
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Author: niszet
 Maintainer: niszet <niszet0016@gmail.com>
 Description: This package especially for wav file which made by csound/rsound 

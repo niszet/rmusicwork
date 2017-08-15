@@ -22,11 +22,15 @@ write_smf <- function(file, rsmf){
 write_header <- function(con, rsmf){
   writeChar("MThd", con, eos=NULL)
 #   dsize <- as.integer(subset(rsmf$header,item=="data_size")$val)
-  dsize <- headval_to_int(rsmf, "data_size")
+  # dsize <- headval_to_int(rsmf$header, "data_size")
+  dsize <- as.integer(rsmf$header$data_size)
   stopifnot(dsize < 256)
-  tunit <- headval_to_int(rsmf, "timeunit")
-  ntracks <- headval_to_int(rsmf, "track")
-  fo <- headval_to_int(rsmf, "format")
+  # tunit <- headval_to_int(rsmf, "timeunit")
+  tunit <- as.integer(rsmf$header$time_unit)
+  # ntracks <- headval_to_int(rsmf, "track")
+  ntracks <- as.integer(rsmf$header$track)
+  # fo <- headval_to_int(rsmf, "format")
+  fo <- as.integer(rsmf$header$format)
 
   # writeBin(as.raw(c(0,0,0), as.raw(dsize)), con, endian = "big")
   # writeBin(as.raw(c(0,fo)), con, endian = "big")
@@ -110,15 +114,18 @@ write_track <- function(con, data, dsize){
 }
 
 write_notes <- function(con, data){
-  data <- data %>% mutate(dtime=ifelse(is.na(abs_time-lag(abs_time)),
+  data <- dplyr::mutate(data, dtime=ifelse(is.na(abs_time-lag(abs_time)),
                                        abs_time, abs_time-lag(abs_time)))
   for (i in 1:nrow(data)){
+    # print(paste(data[i,1], data[i,2], data[i,3], data[i,4], data[i,7]))
     write_note(con, data[i,1], data[i,2], data[i,3], data[i,4], data[i,7])
   }
 }
 
 
 write_note <- function(con, item, ch, height, val, dtime){
+
+  # print(paste(item,ch,height,val,dtime))
   if(!is.na(dtime)){
     write_dtime(con, dtime)
   }
@@ -127,10 +134,12 @@ write_note <- function(con, item, ch, height, val, dtime){
 #    print("FF")
 #  }
   if(is.na(val)){
-    val <- NA_integer_
+    # val <- NA_integer_
+    val <- as.integer(val)
   }
 
-  if(!is.na(as.integer(val))){
+  # warning is happened when the val is actually string
+  if(!is.na(suppressWarnings(as.integer(val)))){
     val <- as.integer(val)
   }
 
@@ -142,22 +151,14 @@ write_note <- function(con, item, ch, height, val, dtime){
       #  len <- 4
       #}
       if(is.character(val)){
-      # print(paste("st", item, ch, height, val))
         lin <- c(int_to_raws(item), int_to_raws(ch), int_to_raws(height), as.raw(utf8ToInt(val)))
       }else{
-      # print(paste(item, ch, height, val))
         lin <- c(int_to_raws(item), int_to_raws(ch), int_to_raws(height), int_to_raws(val, length = height))
-        # print(int_to_raws(val, length = height))
       }
     }else{
-      # print(item)
-      # print(height)
       # print(val)
       lin <- c(int_to_raws(item), int_to_raws(height), int_to_raws(val, length = len))
-      # print(lin)
     }
-
-
   writeBin(lin, con, endian = "big")
 }
 
