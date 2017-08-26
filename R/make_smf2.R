@@ -21,7 +21,7 @@ make_note_frame <- function(smf){
   df <- df %>% filter(between(item, 128, 159))
 
   notes <-  as.data.frame(list("ch"=NA,"height"=NA, "val"=NA_character_,
-                               "start_time"=NA, "end_time"=NA), stringsAsFactors = FALSE)
+                               "start_time"=NA, "end_time"=NA, "nn"=NA), stringsAsFactors = FALSE)
   k <- 0
   for (i in 1:nrow(df)){
     k <- k+1
@@ -32,7 +32,7 @@ make_note_frame <- function(smf){
       if( rr$val != 0){
         # note on
         note <- list("ch"=rr$ch,"height"=rr$type, "val"=as.character(rr$val),
-                     "start_time"=rr$abs_time, "end_time"=NULL)
+                     "start_time"=rr$abs_time, "end_time"=NULL, "nn"=rr$type %% 12)
         # find note off time
         m <- k
         for( j in k:nrow(df)){

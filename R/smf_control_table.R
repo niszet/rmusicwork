@@ -1,7 +1,273 @@
 
 get_ctrl_chang_name <- function(val){
 
+  tmp <- c(
+  "Bank Select",
+  "Modulation wheel",
+  "Breath control",
+  "Undefined",
+  "Foot controller",
+  "Portamento time",
+  "Data Entry",
+  "Channel Volume (formerly Main Volume)",
+  "Balance",
+  "Undefined",
+  "Pan",
+  "Expression Controller",
+  "Effect control 1",
+  "Effect control 2",
+  "Undefined",
+  "Undefined",
+  "General Purpose Controller #1",
+  "General Purpose Controller #2",
+  "General Purpose Controller #3",
+  "General Purpose Controller #4",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Bank Select",
+  "Modulation wheel",
+  "Breath control",
+  "Undefined",
+  "Foot controller",
+  "Portamento time",
+  "Data entry",
+  "Channel Volume (formerly Main Volume)",
+  "Balance",
+  "Undefined",
+  "Pan",
+  "Expression Controller",
+  "Effect control 1",
+  "Effect control 2",
+  "Undefined",
+  "Undefined",
+  "General Purpose Controller #1",
+  "General Purpose Controller #2",
+  "General Purpose Controller #3",
+  "General Purpose Controller #4",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Damper pedal on/off (Sustain)",
+  "Portamento on/off",
+  "Sustenuto on/off",
+  "Soft pedal on/off",
+  "Legato Footswitch",
+  "Hold 2",
+  "Sound Controller 1 (Sound Variation)",
+  "Sound Controller 2 (Timbre)",
+  "Sound Controller 3 (Release Time)",
+  "Sound Controller 4 (Attack Time)",
+  "Sound Controller 5 (Brightness)",
+  "Sound Controller 6",
+  "Sound Controller 7",
+  "Sound Controller 8",
+  "Sound Controller 9",
+  "Sound Controller 10",
+  "General Purpose Controller #5",
+  "General Purpose Controller #6",
+  "General Purpose Controller #7",
+  "General Purpose Controller #8",
+  "Portamento Control",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Effects 1 Depth",
+  "Effects 2 Depth",
+  "Effects 3 Depth",
+  "Effects 4 Depth",
+  "Effects 5 Depth",
+  "Data entry +1",
+  "Data entry -1",
+  "Non-Registered Parameter Number LSB",
+  "Non-Registered Parameter Number MSB",
+  "Registered Parameter Number LSB",
+  "Registered Parameter Number MSB",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "Undefined",
+  "All Sound Off 0",
+  "Reset All Controllers 0",
+  "Local control on/off 0=off 127=on",
+  "All notes off 0",
+  "Omni mode off (+ all notes off) 0",
+  "Omni mode on (+ all notes off) 0",
+  "Poly mode on/off (+ all notes off) ",
+  "Poly mode on (incl mono=off +all notes off) 0")
+
+  return(tmp[val])
+
 }
+
+
+"
+# Binary Hex Dec Value Use
+Bank Select	MSB
+Modulation wheel	MSB
+Breath control	MSB
+Undefined	MSB
+Foot controller	MSB
+Portamento time	MSB
+Data Entry	MSB
+Channel Volume (formerly Main Volume)	MSB
+Balance	MSB
+Undefined	MSB
+Pan	MSB
+Expression Controller	MSB
+Effect control 1	MSB
+Effect control 2	MSB
+Undefined	MSB
+Undefined	MSB
+General Purpose Controller #1	MSB
+General Purpose Controller #2	MSB
+General Purpose Controller #3	MSB
+General Purpose Controller #4	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Undefined	MSB
+Bank Select	LSB
+Modulation wheel	LSB
+Breath control	LSB
+Undefined	LSB
+Foot controller	LSB
+Portamento time	LSB
+Data entry	LSB
+Channel Volume (formerly Main Volume)	LSB
+Balance	LSB
+Undefined	LSB
+Pan	LSB
+Expression Controller	LSB
+Effect control 1	LSB
+Effect control 2	LSB
+Undefined	LSB
+Undefined	LSB
+General Purpose Controller #1	LSB
+General Purpose Controller #2	LSB
+General Purpose Controller #3	LSB
+General Purpose Controller #4	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Damper pedal on/off (Sustain)	<63=off >64=on
+Portamento on/off	<63=off >64=on
+Sustenuto on/off	<63=off >64=on
+Soft pedal on/off	<63=off >64=on
+Legato Footswitch	<63=off >64=on
+Hold 2	<63=off >64=on
+Sound Controller 1 (Sound Variation)	LSB
+Sound Controller 2 (Timbre)	LSB
+Sound Controller 3 (Release Time)	LSB
+Sound Controller 4 (Attack Time)	LSB
+Sound Controller 5 (Brightness)	LSB
+Sound Controller 6	LSB
+Sound Controller 7	LSB
+Sound Controller 8	LSB
+Sound Controller 9	LSB
+Sound Controller 10	LSB
+General Purpose Controller #5	LSB
+General Purpose Controller #6	LSB
+General Purpose Controller #7	LSB
+General Purpose Controller #8	LSB
+Portamento Control	Source Note
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Undefined	LSB
+Effects 1 Depth	LSB
+Effects 2 Depth	LSB
+Effects 3 Depth	LSB
+Effects 4 Depth	LSB
+Effects 5 Depth	LSB
+Data entry +1	N/A
+Data entry -1	N/A
+Non-Registered Parameter Number LSB	LSB
+Non-Registered Parameter Number MSB	MSB
+Registered Parameter Number LSB	LSB
+Registered Parameter Number MSB	MSB
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+Undefined
+All Sound Off 0
+Reset All Controllers 0
+Local control on/off 0=off 127=on
+All notes off 0
+Omni mode off (+ all notes off) 0
+Omni mode on (+ all notes off) 0
+Poly mode on/off (+ all notes off)
+Poly mode on (incl mono=off +all notes off) 0
+"
+
 
 "
 # Binary Hex Dec Value Use
