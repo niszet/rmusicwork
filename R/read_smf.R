@@ -156,9 +156,8 @@ read_header <- function(con){
 
 #' This is internal function
 read_track_data_size <- function(con){
-  tmp <- readBin(con, "integer", n=1L, size=4L,endian = "big")
-  # c("data_size", tmp, NA, NA)
-  tmp
+  tds <- readBin(con, "integer", n=1L, size=4L,endian = "big")
+  tds
 }
 
 #' This is internal function
